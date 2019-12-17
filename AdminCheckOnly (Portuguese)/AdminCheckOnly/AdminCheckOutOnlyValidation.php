@@ -96,7 +96,7 @@ class AdminCheckOutOnlyValidation implements IReservationValidationService
 		}
 
 		// Retorna validação correta caso não haja problemas
-		return new ReservationValidationResult(false, "true");
+		return new ReservationValidationResult();
 
  }
 
