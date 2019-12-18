@@ -59,14 +59,12 @@ class AdminCheckEditOnlyValidation implements IReservationValidationService
 		$adminCheckInID = $configFile->GetKey('admincheckonly.attribute.checkin.id'); //Busca o ID configurado de AdminCheckInOnly
 		$adminCheckOutID = $configFile->GetKey('admincheckonly.attribute.checkout.id'); //Busca o ID configurado de AdminCheckOutOnly
     $resources = $series->AllResources();
-		$adminResources=[]; //Recursos com AdminCheckInOnly
-		$checkedIn=true;
-		$checkedOut=false;
-		$message="";
+		$adminResources=0; //Recursos com AdminCheckInOnly
+		$customMessage = $configFile->GetKey('admincheckonly.message.edit.error');
 
 		//Verfica se é Admin
 		if($this->userSession->IsAdmin || $this->userSession->IsResourceAdmin || $this->userSession->IsScheduleAdmin){
-		   return new ReservationValidationResult();
+		   //return new ReservationValidationResult();
 		}
 
     //Verifica se o CheckIn foi efectuado
@@ -85,7 +83,6 @@ class AdminCheckEditOnlyValidation implements IReservationValidationService
 			}
 		}
 
-
 		//Verifica se algum dos recursos tem AdminChecks
 		//Se nenhum tiver AdminCheck, retorna validação válida
 		foreach ($resources as $key => $resource) {//Faz um ciclo para todos os recursos e busca AdminCheck
@@ -99,27 +96,19 @@ class AdminCheckEditOnlyValidation implements IReservationValidationService
 	                   $adminCheckOnly = $attribute->Value; //Busca o valor do atributo AdminCheck
 
 										 if($adminCheckOnly){//Se AdminCheckInOnly estiver atribuído no recurso, guarda o nome do recurso
-											 array_push($adminResources,$resource->GetName());
+											 $adminResources++;
+											 break;
 										 }
 	                 }
 								 }
 	 					 }
+	  Log::Debug('Validating AdminCheckEditOnly resources, AdminResources?:%s.', $adminResources);
 
 	  // Se houver recursos com AdminCheck
-		//Retorna invalidação com mensagem de erro com os nomes dos recursos
 	  if($adminResources){
-			$adminResources=array_unique($adminResources); //Remove duplicados
-			foreach ($adminResources as $adminResourceName){//Organiza os nomes dos recursos de Admin para mostrar ao utilizador
-				$message.= $adminResourceName. ", ";
-			}
-			$message=substr($message, 0, strlen($message)-2); //corta a última vírgula
-		  Log::Debug('Validating AdminCheckEditOnly resources, AdminResources?:%s.', $message);
-
-			// Mostra mensagem ao utilizador
-			return new ReservationValidationResult(false,
-				"A operação não pode ser efectuada porque os seguintes recursos só podem ser validados pelo administrador: ".$message . ".");
+			// Mostra mensagem costumizada ao utilizador
+			return new ReservationValidationResult(false, $customMessage);
 		}
-
 		//Se não houver recursos com AdminCheck
 		return new ReservationValidationResult();
 
