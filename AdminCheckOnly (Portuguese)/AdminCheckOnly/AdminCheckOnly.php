@@ -20,6 +20,7 @@ along with Booked Scheduler.  If not, see <http://www.gnu.org/licenses/>.
 
 require_once(dirname(__FILE__) . '/AdminCheckInOnlyValidation.php');
 require_once(dirname(__FILE__) . '/AdminCheckOutOnlyValidation.php');
+require_once(dirname(__FILE__) . '/AdminCheckEditOnlyValidation.php');
 
 class AdminCheckOnly implements IPreReservationFactory
 {
@@ -46,12 +47,14 @@ class AdminCheckOnly implements IPreReservationFactory
 
     public function CreatePreUpdateService(UserSession $userSession)
     {
-        return $this->factoryToDecorate->CreatePreUpdateService($userSession);
+      $base = $this->factoryToDecorate->CreatePreUpdateService($userSession);
+      return new AdminCheckEditOnlyValidation($base, $userSession);
     }
 
     public function CreatePreDeleteService(UserSession $userSession)
     {
-        return $this->factoryToDecorate->CreatePreDeleteService($userSession);
+      $base = $this->factoryToDecorate->CreatePreDeleteService($userSession);
+      return new AdminCheckEditOnlyValidation($base, $userSession);
     }
 
     public function CreatePreApprovalService(UserSession $userSession)
